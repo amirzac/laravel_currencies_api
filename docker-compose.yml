@@ -1,0 +1,65 @@
+version: '3'
+services:
+  nginx:
+    build:
+      context: ./
+      dockerfile: docker/nginx.docker
+    volumes:
+      - ./apps/laravel/:/var/www
+      - ./docker/nginx/ssl:/etc/nginx/ssl
+    ports:
+      - "8087:443"
+    links:
+      - php-fpm
+    container_name: sharpeo-nginx
+  php-fpm:
+    build:
+      context: ./
+      dockerfile: docker/php-fpm.docker
+    volumes:
+      - ./apps/laravel/:/var/www
+    links:
+      - mysql
+    environment:
+      - "DB_PORT=3306"
+      - "DB_HOST=mysql"
+    user: www-data
+    container_name: sharpeo-php-fpm
+  php-cli:
+    build:
+      context: ./
+      dockerfile: docker/php-cli.docker
+    volumes:
+      - ./apps/laravel/:/var/www
+    links:
+      - mysql
+    environment:
+      - "DB_PORT=3306"
+      - "DB_HOST=mysql"
+    tty: true
+    user: www-data
+    container_name: sharpeo-php-cli
+  mysql:
+    image: mysql:5.7
+    volumes:
+      - ./storage/docker/mysql:/var/lib/mysql
+    environment:
+      - "MYSQL_ROOT_PASSWORD=secret"
+      - "MYSQL_USER=app"
+      - "MYSQL_PASSWORD=secret"
+      - "MYSQL_DATABASE=app"
+    ports:
+      - "33061:3306"
+    container_name: sharpeo-mysql
+    user: ${LOCAL_USER}
+  node:
+    image: wiwatsrt/docker-laravel-nodejs
+    volumes:
+    - ./apps/laravel/:/var/www
+    working_dir: /var/www
+    tty: true
+    container_name: sharpeo-node
+    user: ${LOCAL_USER}
+    environment:
+    - DOCKER_ENV=${DOCKER_ENV}
+    - APP_DEBUG=${APP_DEBUG}

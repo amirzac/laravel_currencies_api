@@ -1,0 +1,5 @@
+#docker
+/storage/*
+
+#phpstorm
+.idea
